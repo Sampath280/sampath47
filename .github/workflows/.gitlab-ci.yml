@@ -1,0 +1,36 @@
+variables:
+  API_TOKEN: $DEPLOYMENT_TOKEN
+  APP_PATH: '$CI_PROJECT_DIR'
+  OUTPUT_PATH: '$CI_PROJECT_DIR/build'
+
+stages:
+  - build
+  - deploy
+
+# Build job
+build:
+  stage: build
+  image: node:16
+  script:
+    - echo "Installing dependencies..."
+    - npm install
+    - echo "Building the React app..."
+    - npm run build
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 hour
+
+# Deploy job
+deploy:
+  stage: deploy
+  image: registry.gitlab.com/static-web-apps/azure-static-web-apps-deploy
+  script:
+    - echo "Deploying app to Azure Static Web Apps..."
+    - echo "Deploying frontend and API to Azure Static Web Apps"
+    - |
+      curl -X POST https://api.github.com/repos/<YOUR_GITHUB_USERNAME>/my-first-static-web-app/actions/workflows/azure-static-web-apps-thankful-bay-02544830f.yml/dispatches \
+        -H "Authorization: Bearer $DEPLOYMENT_TOKEN" \
+        -d '{"ref": "main"}'
+  only:
+    - main
